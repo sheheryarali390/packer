@@ -1,0 +1,39 @@
+name: L2-k3s
+env:
+  AWS_DEFAULT_REGION: us-east-1
+on:
+  workflow_dispatch:
+    inputs:
+      ami_id:
+        description: The ami id from base L1 to install snyk.
+        required: true
+  push:
+    branches:
+      - master
+    
+jobs:
+  build-ami:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-1
+
+    - name: Setup temporary SSH key
+      run: |
+        cd packer
+        ssh-keygen -P "" -t rsa -b 4096 -m pem -f temp_ssh_key
+        aws ec2 import-key-pair --key-name "packer-L2-${GITHUB_RUN_ID}" --public-key-material fileb://temp_ssh_key.pub
+        mkdir -p ../gw-k8s-l2-infrastructure/ssh
+        cp temp_ssh_key ../gw-k8s-l2-infrastructure/ssh/id_rsa
+
+    - name: Launch AMI
+      run: |
+        aws ec2 run instances --image-id ${{ github.event.inputs.ami_id }} --instance-type t2.micro --key-name "packer-L2-${GITHUB_RUN_ID}"
