@@ -28,7 +28,6 @@ jobs:
 
     - name: Setup temporary SSH key
       run: |
-        cd packer
         ssh-keygen -P "" -t rsa -b 4096 -m pem -f temp_ssh_key
         aws ec2 import-key-pair --key-name "packer-L2-${GITHUB_RUN_ID}" --public-key-material fileb://temp_ssh_key.pub
         mkdir -p ../gw-k8s-l2-infrastructure/ssh
