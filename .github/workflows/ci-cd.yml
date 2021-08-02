@@ -35,4 +35,4 @@ jobs:
 
     - name: Launch AMI
       run: |
-        aws ec2 run instances --image-id ${{ github.event.inputs.ami_id }} --instance-type t2.micro --key-name "packer-L2-${GITHUB_RUN_ID}"
+        aws ec2 run-instances --image-id ${{ github.event.inputs.ami_id }} --instance-type t2.micro --key-name "packer-L2-${GITHUB_RUN_ID}"
